@@ -50,7 +50,9 @@ function save_env() {
 
   login
   local content=$(jq -Rs . < "$file")
-  bw create item "{\"type\":2,\"name\":\"$BWENV_ITEM_NAME\",\"notes\":$content}" > /dev/null
+  echo "{\"type\":2,\"name\":\"$BWENV_ITEM_NAME\",\"notes\":$content}" > /tmp/bwenv-payload.json
+  bw create item --input /tmp/bwenv-payload.json > /dev/null
+  rm /tmp/bwenv-payload.json
   echo "Saved '$file' to Bitwarden as '$BWENV_ITEM_NAME'"
 }
 
@@ -73,7 +75,9 @@ function update_env() {
   login
   local content=$(jq -Rs . < "$file")
   local item_id=$(bw list items --search "$BWENV_ITEM_NAME" | jq -r '.[0].id')
-  bw edit item "$item_id" "{\"notes\":$content}" > /dev/null
+  echo "{\"notes\":$content}" > /tmp/bwenv-payload.json
+  bw edit item "$item_id" --input /tmp/bwenv-payload.json > /dev/null
+  rm /tmp/bwenv-payload.json
   echo "Updated Bitwarden item '$BWENV_ITEM_NAME' with contents of '$file'"
 }
 
