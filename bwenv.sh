@@ -11,8 +11,8 @@ DIR_NAME=$(basename "$PWD")
 BWENV_ITEM_NAME="bwenv-${DIR_NAME}-${ENV_MODE}"
 
 function help_text() {
-  echo "\nUsage: bwenv <command> [env_mode]"
-  echo "\nCommands:"
+  echo "Usage: bwenv <command> [env_mode]"
+  echo "Commands:"
   echo "  login                     Log in to Bitwarden"
   echo "  save [env_mode]          Save a .env file (default: .env)"
   echo "  load [env_mode]          Load from Bitwarden to local .env file"
