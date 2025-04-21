@@ -50,11 +50,12 @@ function save_env() {
 
   login
   local content=$(jq -Rs . < "$file")
-  echo "{\"type\":2,\"name\":\"$BWENV_ITEM_NAME\",\"notes\":$content}" > /tmp/bwenv-payload.json
-  bw create item --input /tmp/bwenv-payload.json > /dev/null
-  rm /tmp/bwenv-payload.json
+  local template=$(bw get template item | jq ".name = \"$BWENV_ITEM_NAME\" | .type = 2 | .notes = $content")
+  local encoded=$(echo "$template" | bw encode)
+  bw create item "$encoded" > /dev/null
   echo "Saved '$file' to Bitwarden as '$BWENV_ITEM_NAME'"
 }
+
 
 function load_env() {
   set_env_mode "$1"
@@ -75,9 +76,9 @@ function update_env() {
   login
   local content=$(jq -Rs . < "$file")
   local item_id=$(bw list items --search "$BWENV_ITEM_NAME" | jq -r '.[0].id')
-  echo "{\"notes\":$content}" > /tmp/bwenv-payload.json
-  bw edit item "$item_id" --input /tmp/bwenv-payload.json > /dev/null
-  rm /tmp/bwenv-payload.json
+  local template=$(bw get item "$item_id" | jq ".notes = $content")
+  local encoded=$(echo "$template" | bw encode)
+  bw edit item "$item_id" "$encoded" > /dev/null
   echo "Updated Bitwarden item '$BWENV_ITEM_NAME' with contents of '$file'"
 }
 
