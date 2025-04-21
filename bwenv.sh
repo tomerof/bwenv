@@ -9,6 +9,7 @@ set -e
 ENV_MODE=".env"
 DIR_NAME=$(basename "$PWD")
 BWENV_ITEM_NAME="bwenv-${DIR_NAME}-${ENV_MODE}"
+BWENV_REPO_URL="https://raw.githubusercontent.com/tomerof/bwenv/refs/heads/master/bwenv.sh"
 
 function help_text() {
   echo "Usage: bwenv <command> [env_mode]"
@@ -18,6 +19,7 @@ function help_text() {
   echo "  load [env_mode]          Load from Bitwarden to local .env file"
   echo "  update [env_mode]        Update an existing Bitwarden entry"
   echo "  set-name <custom_name>   Override the Bitwarden item name"
+  echo "  self-update              Update bwenv script from the official repo"
   echo "  help                     Show this help text"
   echo
 }
@@ -29,6 +31,7 @@ function login() {
 
 function set_env_mode() {
   ENV_MODE="${1:-.env}"
+  DIR_NAME=$(basename "$PWD")
   BWENV_ITEM_NAME="bwenv-${DIR_NAME}-${ENV_MODE}"
 }
 
@@ -46,8 +49,8 @@ function save_env() {
   fi
 
   login
-  local content=$(cat "$file" | sed ':a;N;$!ba;s/\n/\\n/g')
-  bw create item "{\"type\":2,\"name\":\"$BWENV_ITEM_NAME\",\"notes\":\"$content\"}" > /dev/null
+  local content=$(jq -Rs . < "$file")
+  bw create item "{\"type\":2,\"name\":\"$BWENV_ITEM_NAME\",\"notes\":$content}" > /dev/null
   echo "Saved '$file' to Bitwarden as '$BWENV_ITEM_NAME'"
 }
 
@@ -68,10 +71,17 @@ function update_env() {
     exit 1
   fi
   login
-  local content=$(cat "$file" | sed ':a;N;$!ba;s/\n/\\n/g')
+  local content=$(jq -Rs . < "$file")
   local item_id=$(bw list items --search "$BWENV_ITEM_NAME" | jq -r '.[0].id')
-  bw edit item "$item_id" "{\"notes\":\"$content\"}" > /dev/null
+  bw edit item "$item_id" "{\"notes\":$content}" > /dev/null
   echo "Updated Bitwarden item '$BWENV_ITEM_NAME' with contents of '$file'"
+}
+
+function self_update() {
+  echo "🔄 Updating bwenv..."
+  curl -sL "$BWENV_REPO_URL" -o "$HOME/.bwenv/bwenv"
+  chmod +x "$HOME/.bwenv/bwenv"
+  echo "✅ bwenv updated successfully."
 }
 
 case "$1" in
@@ -89,6 +99,9 @@ case "$1" in
     ;;
   set-name)
     set_name "$2"
+    ;;
+  self-update)
+    self_update
     ;;
   help|--help|-h|"")
     help_text
