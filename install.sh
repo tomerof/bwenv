@@ -2,7 +2,7 @@
 set -e
 
 mkdir -p ~/.bwenv
-curl -sL https://github.com/tomerof/bwenv/master/bwenv.sh -o ~/.bwenv/bwenv
+curl -sL https://raw.githubusercontent.com/tomerof/bwenv/refs/heads/master/bwenv.sh -o ~/.bwenv/bwenv
 chmod +x ~/.bwenv/bwenv
 
 if ! grep -q 'export PATH="$HOME/.bwenv:$PATH"' ~/.bashrc; then
